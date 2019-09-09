@@ -84,28 +84,20 @@ sister(Me, Sibling) :-
 
 % aunt(me, aunt)
 aunt(Me, Aunt) :-
-    mother(Me, Mother),
-    sister(Mother, Aunt);
-    father(Me, Father),
-    sister(Father, Aunt).
+    (mother(Me, Parent) ; father(Me, Parent)),
+    sister(Parent, Aunt).
 
 % uncle(me, uncle)
 uncle(Me, Uncle) :-
-    mother(Me, Mother),
-    brother(Mother, Uncle);
-    father(Me, Father),
-    brother(Father, Uncle).
+    (mother(Me, Parent) ; father(Me, Parent)),
+    brother(Parent, Uncle).
 
 % grandfather(me, grandfather)
 grandfather(Me, Grandfather) :-
-    mother(Me, Mother),
-    father(Mother, Grandfather);
-    father(Me, Father),
-    father(Father, Grandfather).
+    (mother(Me, Parent) ; father(Me, Parent)),
+    father(Parent, Grandfather).
 
 % grandmother(me, grandmother)
 grandmother(Me, Grandmother) :-
-    mother(Me, Mother),
-    mother(Mother, Grandmother);
-    father(Me, Father),
-    mother(Father, Grandmother).
+    (mother(Me, Parent) ; father(Me, Parent)),
+    mother(Parent, Grandmother).
