@@ -125,4 +125,5 @@ female_ancestor(Me, Ancestor) :- (mother(Me, Parent); father(Me, Parent)),
 % ancestor1(Child, Parent, N).
 ancestor1(Me, Ancestor, N) :- N == 1, (father(Me, Ancestor); mother(Me, Ancestor)).
 ancestor1(Me, Ancestor, N) :- (father(Me, Parent); mother(Me, Parent)),
+                                X is N - 1,
                                 ancestor1(Parent, Ancestor, X).
