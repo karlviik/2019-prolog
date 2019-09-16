@@ -134,4 +134,4 @@ ancestor2(Child, Ancestor, N) :- bagof(Children, (mother(Children, Ancestor) ; f
                                 N < X,
                                 (mother(Child, Ancestor); father(Child, Ancestor)).
 ancestor2(Child, Ancestor, N) :- (father(Child, Parent); mother(Child, Parent)),
-                                ancestor1(Parent, Ancestor, N).
+                                ancestor2(Parent, Ancestor, N).
