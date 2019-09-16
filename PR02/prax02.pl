@@ -46,7 +46,7 @@ female(mari2).
 % male(keegi)
 
 male(karl).
-male(male_leida2)
+male(male_leida2).
 male(timo).
 male(henri).
 male(vaano).
@@ -127,3 +127,11 @@ ancestor1(Me, Ancestor, N) :- N == 1, (father(Me, Ancestor); mother(Me, Ancestor
 ancestor1(Me, Ancestor, N) :- (father(Me, Parent); mother(Me, Parent)),
                                 X is N - 1,
                                 ancestor1(Parent, Ancestor, X).
+
+% ancestor2(Child, Ancestor, N).
+ancestor2(Child, Ancestor, N) :- bagof(Children, (mother(Children, Ancestor) ; father(Children, Ancestor)), Childrenses),
+                                length(Childrenses, X),
+                                N < X,
+                                (mother(Child, Ancestor); father(Child, Ancestor)).
+ancestor2(Child, Ancestor, N) :- (father(Child, Parent); mother(Child, Parent)),
+                                ancestor1(Parent, Ancestor, N).
