@@ -34,3 +34,14 @@ paki([E1, E2 | Tail], Answer) :- E1 \= E2,
 duplikeeri([], []).
 duplikeeri([H1 | T], Answer) :- duplikeeri(T, SmallerAnswer),
                                 append([H1, H1], SmallerAnswer, Answer).
+
+
+% 5. Kirjutada reegel kordista/3, mis kordistab listi kõiki elemente etteantud arv korda.
+helper(Element, 1, [Element]).
+helper(Element, Times, List) :- FewerTimes is Times - 1,
+                                helper(Element, FewerTimes, SmallerList),
+                                append([Element], SmallerList, List).
+kordista([], _, []).
+kordista([El | Tail], Times, Answer) :- kordista(Tail, Times, SmallerAnswer),
+                                        helper(El, Times, HelperList),
+                                        append(HelperList, SmallerAnswer, Answer).
