@@ -16,3 +16,13 @@ suurim([H1, H2 | T], X) :- Bigger is max(H1, H2),
                             append([H2], T, Tsmaller),
                             suurim(Tsmaller, Xsmaller),
                             append([Bigger], Xsmaller, X).
+
+
+% 3. Kirjutada reegel paki/2, mis elimineerib listist üksteisele vahetult
+% järgnevad korduvad elemendid
+paki([E1 | []], [E1 | []]).
+paki([E1, E2 | Tail], Answer) :- E1 == E2,
+                                paki([E2 | Tail], Answer).
+paki([E1, E2 | Tail], Answer) :- E1 \= E2,
+                                paki([E2 | Tail], SmallerAnswer),
+                                append([E1], SmallerAnswer, Answer).
