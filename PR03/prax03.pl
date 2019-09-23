@@ -28,3 +28,9 @@ paki([E1, E2 | Tail], Answer) :- E1 == E2,
 paki([E1, E2 | Tail], Answer) :- E1 \= E2,
                                 paki([E2 | Tail], SmallerAnswer),
                                 append([E1], SmallerAnswer, Answer).
+
+
+% 4. Kirjutada reegel duplikeeri/2, mis kahekordistab elemendid etteantud listis.
+duplikeeri([], []).
+duplikeeri([H1 | T], Answer) :- duplikeeri(T, SmallerAnswer),
+                                append([H1, H1], SmallerAnswer, Answer).
