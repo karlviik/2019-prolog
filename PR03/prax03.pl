@@ -20,7 +20,8 @@ suurim([H1, H2 | T], X) :- Bigger is max(H1, H2),
 
 % 3. Kirjutada reegel paki/2, mis elimineerib listist üksteisele vahetult
 % järgnevad korduvad elemendid
-paki([E1 | []], [E1 | []]).
+paki([], []).
+paki([E1], [E1]).
 paki([E1, E2 | Tail], Answer) :- E1 == E2,
                                 paki([E2 | Tail], Answer).
 paki([E1, E2 | Tail], Answer) :- E1 \= E2,
