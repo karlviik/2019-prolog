@@ -45,3 +45,23 @@ kordista([], _, []).
 kordista([El | Tail], Times, Answer) :- kordista(Tail, Times, SmallerAnswer),
                                         helper(El, Times, HelperList),
                                         append(HelperList, SmallerAnswer, Answer).
+
+
+% 6. Kirjutada reegel vordle_predikaadiga/3, mis võrdleb etteantud predikaadiga
+% listi kõiki liikmeid ja paneb väljundlisti need elemendid, mis vastavad tingimustele.
+% Võrdluspredikaadid on:
+%   -paaritu_arv
+%   -paaris_arv
+%   -suurem_kui(X)
+% Võrdluspredikaadid tuleb ise implementeerida.
+paaritu_arv(X) :- 1 is X rem 2.
+paaris_arv(X) :- 0 is X rem 2.
+suurem_kui(X, Num) :- Num > X.
+
+vordle_predikaadiga([], _, []).
+vordle_predikaadiga([El | Tail], [Thing], Answer) :- (Term =.. [Thing, El], Term, Addition = [El], write(Addition) ; Addition = [], write(Addition)),
+                                            vordle_predikaadiga(Tail, [Thing], Xsmaller),
+                                            append(Addition, Xsmaller, Answer).
+vordle_predikaadiga([El | Tail], [Thing, X], Answer) :- (Term =.. [Thing, X, El], Term, Addition = [El], write(Addition) ; Addition = [], write(Addition)),
+                                            vordle_predikaadiga(Tail, [Thing, X], Xsmaller),
+                                            append(Addition, Xsmaller, Answer).
