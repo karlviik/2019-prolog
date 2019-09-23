@@ -8,6 +8,7 @@ viimane_element(E, [_ | T]) :- viimane_element(E, T).
 % 2. Kirjutada reegel suurim/2, mis kontrollib etteantud listist järjest paarikaupa elemente
 % ja paneb väljundlisti elemendi, mis on antud paari elementidest suurim.
 % Kui võrreldakse elementi ja tühilisti,siis väljundlisti tuleb panna element.
+suurim([], []).
 suurim([X | []], Y) :- append([], [X], Y).
 suurim([H1, H2 | []], X) :- Bigger is max(H1, H2),
                             suurim([H2], Xsmaller),
