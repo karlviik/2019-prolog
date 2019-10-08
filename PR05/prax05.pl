@@ -1,6 +1,7 @@
 :- dynamic hourconstraint/0.
 :- dynamic shortest/3.
 :- dynamic cheapest/2.
+laevaga/3.
 
 
 
