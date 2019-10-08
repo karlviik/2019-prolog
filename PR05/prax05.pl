@@ -21,12 +21,12 @@ lennukiga(helsinki, paris, 180, time(0, 0, 0), time(0, 0, 0)).
 lennukiga(paris, berlin, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
 lennukiga(paris, tallinn, 120, time(0, 0, 0), time(0, 0, 0)).
 
-% checks if can travel between From and To, also gives the transportation method in With and time in Time.
-canReisi(From, To, With, Time) :-
-    (laevaga(From, To, Time) ; laevaga(To, From, Time)), With = laevaga;
-    (bussiga(From, To, Time) ; bussiga(To, From, Time)), With = bussiga;
-    (rongiga(From, To, Time) ; rongiga(To, From, Time)), With = rongiga;
-    (lennukiga(From, To, Time) ; lennukiga(To, From, Time)), With = lennukiga.
+% checks if can travel between From and To, also gives the transportation method in With and cost in Cost.
+canReisi(From, To, With, Cost) :-
+    (laevaga(From, To, Cost) ; laevaga(To, From, Cost)), With = laevaga;
+    (bussiga(From, To, Cost) ; bussiga(To, From, Cost)), With = bussiga;
+    (rongiga(From, To, Cost) ; rongiga(To, From, Cost)), With = rongiga;
+    (lennukiga(From, To, Cost) ; lennukiga(To, From, Cost)), With = lennukiga.
 
 % end condition for getPath. If can travel between the positions and To hasn't been visited,
 % unify Path, Pathmethod and Times with corresponding values.
@@ -59,11 +59,6 @@ mineConstructor([E1, E2 | T], [M | MT], Result) :-
     mineConstructor([E2 | T], MT, SmallerResult),
     Result = mine(E1, E2, M, SmallerResult).
 
-
-
-
-
-
 addTime(X, Y, Z) :-
     X = time(H1, M1, S1),
     Y = time(H2, M2, S2),
@@ -73,7 +68,7 @@ addTime(X, Y, Z) :-
     (S3 >= 60, S4 is S3 - 60, M4 is M3 + 1 ; S3 < 60.0, S4 is S3, M4 is M3),
     (M4 >= 60, M5 is M4 - 60, H4 is H3 + 1 ; M4 < 60, M5 is M4, H4 is H3),
     Z = time(H4, M5, S4).
-% substract Y from X, requires X to be the bigger one.
+% substract Y from X, requires X to be the bigger one, otherwise goes negative.
 substractTime(X, Y, Z) :-
     X = time(H1, M1, S1),
     Y = time(H2, M2, S2),
@@ -102,8 +97,8 @@ getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) 
     substractTime(Arrival, Departure, Duration),
     ((not(hourconstraint) ; hourconstraint, PreviousArrival == false) , TotalTime = Duration ;
     hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)),
-        (Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting ;
-        Hours < 1, addTime(Duration, time(Hours + 24, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting)).
+        (Hours >= 1, ActualWaitHours = Hours ; Hours < 1 , ActualWaitHours is Hours + 24),
+        addTime(Duration, time(ActualWaitHours, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting).
 % recursive. Picks Next so that there is a direct connection between them, unifies it to Visited list, Path list,
 % method list and time lists from the inner recursion.
 getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) :-
@@ -113,8 +108,8 @@ getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) 
     substractTime(Arrival, Departure, Duration),
     ((not(hourconstraint) ; hourconstraint, PreviousArrival == false) , AddDuration = Duration ;
     hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)),
-    (Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), AddDuration) ;
-    Hours < 1, addTime(Duration, time(Hours + 24, Mins, Secs), AddDuration))),
+    (Hours >= 1, ActualWaitHours = Hours ; Hours < 1 , ActualWaitHours is Hours + 24),
+    addTime(Duration, time(ActualWaitHours, Mins, Secs), AddDuration)),
 
     append([With], SmallerPathMethod, PathMethod),
     append([Cost], SmallerCosts, Costs),
