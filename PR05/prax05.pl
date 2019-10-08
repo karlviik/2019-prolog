@@ -70,7 +70,7 @@ addTime(X, Y, Z) :-
     S3 is S1 + S2,
     M3 is M1 + M2,
     H3 is H1 + H2,
-    (S3 >= 60.0, S4 is S3 - 60.0, M4 is M3 + 1 ; S3 < 60.0, S4 is S3, M4 is M3),
+    (S3 >= 60, S4 is S3 - 60, M4 is M3 + 1 ; S3 < 60.0, S4 is S3, M4 is M3),
     (M4 >= 60, M5 is M4 - 60, H4 is H3 + 1 ; M4 < 60, M5 is M4, H4 is H3),
     Z = time(H4, M5, S4).
 % substract Y from X, requires X to be the bigger one.
@@ -80,7 +80,7 @@ substractTime(X, Y, Z) :-
     S3 is S1 - S2,
     M3 is M1 - M2,
     H3 is H1 - H2,
-    (S3 < 0.0, S4 is S3 + 60.0, M4 is M3 - 1 ; S3 >= 0.0, S4 is S3, M4 is M3),
+    (S3 < 0, S4 is S3 + 60, M4 is M3 - 1 ; S3 >= 0, S4 is S3, M4 is M3),
     (M4 < 0, M5 is M4 + 60, H4 is H3 - 1 ; M4 >= 0, M5 is M4, H4 is H3),
     (H4 < 0, H5 is H4 + 24; H4 >= 0, H5 is H4),
     Z = time(H5, M5, S4).
