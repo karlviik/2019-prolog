@@ -101,7 +101,9 @@ getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) 
     Costs = [Cost],
     substractTime(Arrival, Departure, Duration),
     ((not(hourconstraint) ; hourconstraint, PreviousArrival == false) , TotalTime = Duration ;
-    hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)), Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting).
+    hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)),
+        (Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting ;
+        Hours < 1, addTime(Duration, time(Hours + 24, Mins, Secs), DurationWithWaiting), TotalTime = DurationWithWaiting)).
 % recursive. Picks Next so that there is a direct connection between them, unifies it to Visited list, Path list,
 % method list and time lists from the inner recursion.
 getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) :-
@@ -110,7 +112,9 @@ getPath(From, To, PreviousArrival, Visited, Path, PathMethod, Costs, TotalTime) 
     canReisi(From, Next, With, Cost, Departure, Arrival),
     substractTime(Arrival, Departure, Duration),
     ((not(hourconstraint) ; hourconstraint, PreviousArrival == false) , AddDuration = Duration ;
-    hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)), Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), AddDuration)),
+    hourconstraint, substractTime(Departure, PreviousArrival, time(Hours, Mins, Secs)),
+    (Hours >= 1, addTime(Duration, time(Hours, Mins, Secs), AddDuration) ;
+    Hours < 1, addTime(Duration, time(Hours + 24, Mins, Secs), AddDuration))),
 
     append([With], SmallerPathMethod, PathMethod),
     append([Cost], SmallerCosts, Costs),
