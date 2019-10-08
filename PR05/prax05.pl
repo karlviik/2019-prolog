@@ -1,6 +1,7 @@
 :- dynamic hourconstraint/0.
 :- dynamic shortest/3.
 :- dynamic cheapest/2.
+
 laevaga(tallinn, helsinki, 120).
 laevaga(tallinn, stockholm, 480).
 laevaga(helsiki, stockholm, 120).
@@ -132,7 +133,7 @@ reisi(From, To, MinePath) :-
     mineConstructor([From | Path], MinePath).
 
 reisi(From, To, MinePath, Cost) :-
-    (getPath(From, To, [From], Path, PathMethod, Costs) ; getPath(From, To, false, [From], Path, PathMethod, Costs, _)),
+    (getPath(From, To, [From], Path, PathMethod, Costs)  ),% ; getPath(From, To, false, [From], Path, PathMethod, Costs, _)),
     mineConstructor([From | Path], PathMethod, MinePath),
     sum_list(Costs, Cost).
 
@@ -152,9 +153,7 @@ odavaim_reis(_, _, Path, Price) :-
 
 lyhim_reis(From, To, _, _) :-
     asserta(hourconstraint),
-    (getPath(From, To, false, [From], Path, PathMethod, Costs, _)),
-        mineConstructor([From | Path], PathMethod, MinePath),
-        sum_list(Costs, Cost),
+    reisi(From, To, MinePath, Cost, Time),
     (not(shortest(_, _, _)) ; shortest(X, _, _), substractTime(X, Time, time(H, M, S)), H >= 0, M >= 0, S >= 0),
     retractall(shortest(X, _, _)),
     asserta(shortest(Time, Cost, MinePath)),
