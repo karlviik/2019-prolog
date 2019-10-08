@@ -1,6 +1,3 @@
-:- dynamic visited/1.
-:- dynamic goal/1.
-
 laevaga(tallinn, helsinki, 120).
 laevaga(tallinn, stockholm, 480).
 laevaga(helsiki, stockholm, 120).
@@ -14,19 +11,23 @@ lennukiga(helsinki, paris, 180).
 lennukiga(paris, berlin, 120).
 lennukiga(paris, tallinn, 120).
 
-
+% checks if can travel between From and To, also gives the transportation method in With and time in Time.
 canReisi(From, To, With, Time) :-
     (laevaga(From, To, Time) ; laevaga(To, From, Time)), With = laevaga;
     (bussiga(From, To, Time) ; bussiga(To, From, Time)), With = bussiga;
     (rongiga(From, To, Time) ; rongiga(To, From, Time)), With = rongiga;
     (lennukiga(From, To, Time) ; lennukiga(To, From, Time)), With = lennukiga.
 
+% end condition for getPath. If can travel between the positions and To hasn't been visited,
+% unify Path, Pathmethod and Times with corresponding values.
 getPath(From, To, Visited, Path, PathMethod, Times) :-
     not(member(To, Visited)),
     canReisi(From, To, With, Time),
     Path = [To],
     PathMethod = [With],
     Times = [Time].
+% recursive. Picks Next so that there is a direct connection between them, unifies it to Visited list, Path list,
+% method list and time lists from the inner recursion.
 getPath(From, To, Visited, Path, PathMethod, Times) :-
     append([Next], Visited, NewVisited),
     append([Next], SmallerPath, Path),
@@ -35,7 +36,6 @@ getPath(From, To, Visited, Path, PathMethod, Times) :-
     append([Time], SmallerTimes, Times),
     not(member(Next, Visited)),
     getPath(Next, To, NewVisited, SmallerPath, SmallerPathMethod, SmallerTimes).
-
 
 mineConstructor([E1, E2 | []], Result) :-
     Result = mine(E1, E2).
@@ -57,12 +57,11 @@ reisi(From, To, MinePath) :-
     getPath(From, To, [From], Path, _, _),
     mineConstructor([From | Path], MinePath).
 
-reisi_transpordiga(From, To, MineTransportPath) :-
-    getPath(From, To, [From], Path, PathMethod, _),
-    mineConstructor([From | Path], PathMethod, MineTransportPath).
-
 reisi(From, To, MinePath, Cost) :-
     getPath(From, To, [From], Path, PathMethod, Times),
     mineConstructor([From | Path], PathMethod, MinePath),
     sum_list(Times, Cost).
 
+reisi_transpordiga(From, To, MineTransportPath) :-
+    getPath(From, To, [From], Path, PathMethod, _),
+    mineConstructor([From | Path], PathMethod, MineTransportPath).
