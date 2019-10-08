@@ -1,4 +1,8 @@
 :- dynamic hourconstraint/0.
+laevaga/5-laevaga(Kust, Kuhu, Pileti_hind, Väljumise_aeg, Saabumise_aeg).
+bussiga/5-bussiga(Kust, Kuhu, Pileti_hind, Väljumise_aeg, Saabumise_aeg).
+rongiga/5-rongiga(Kust, Kuhu, Pileti_hind, Väljumise_aeg, Saabumise_aeg).
+lennukiga/5-lennukiga(Kust, Kuhu, Pileti_hind, Väljumise_aeg, Saabmise_aeg).
 laevaga(tallinn, helsinki, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
 laevaga(tallinn, stockholm, 480, time(1, 2, 3.0), time(12, 4, 1.0)).
 laevaga(helsiki, stockholm, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
