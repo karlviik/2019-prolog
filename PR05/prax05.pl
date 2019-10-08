@@ -82,8 +82,8 @@ substractTime(X, Y, Z) :-
     H3 is H1 - H2,
     (S3 < 0, S4 is S3 + 60, M4 is M3 - 1 ; S3 >= 0, S4 is S3, M4 is M3),
     (M4 < 0, M5 is M4 + 60, H4 is H3 - 1 ; M4 >= 0, M5 is M4, H4 is H3),
-    (H4 < 0, H5 is H4 + 24; H4 >= 0, H5 is H4),
-    Z = time(H5, M5, S4).
+%    (H4 < 0, H5 is H4 + 24; H4 >= 0, H5 is H4),
+    Z = time(H4, M5, S4).
 % checks if can travel between From and To
 canReisi(From, To, With, Cost, Departure, Arrival) :-
     (laevaga(From, To, Cost, Departure, Arrival) ; laevaga(To, From, Cost, Departure, Arrival)), With = laevaga;
@@ -169,4 +169,4 @@ lyhim_reis(From, To, _, _) :-
 lyhim_reis(_, _, Path, Price) :-
     retractall(hourconstraint),
     shortest(_, Price, Path),
-    retractall(shortest(_, _)).
+    retractall(shortest(_, _, _)).
