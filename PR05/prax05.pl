@@ -1,24 +1,21 @@
+:- dynamic hourconstraint/0.
+:- dynamic shortest/3.
+:- dynamic cheapest/2.
 laevaga(tallinn, helsinki, 120).
 laevaga(tallinn, stockholm, 480).
 laevaga(helsiki, stockholm, 120).
-
 bussiga(tallinn, riia, 300).
-
 rongiga(riia, berlin, 680).
-
 lennukiga(tallinn, helsinki, 30).
 lennukiga(helsinki, paris, 180).
 lennukiga(paris, berlin, 120).
 lennukiga(paris, tallinn, 120).
-:- dynamic hourconstraint/0.
+
 laevaga(tallinn, helsinki, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
 laevaga(tallinn, stockholm, 480, time(1, 2, 3.0), time(12, 4, 1.0)).
 laevaga(helsiki, stockholm, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
-
 bussiga(tallinn, riia, 300, time(1, 2, 3.0), time(12, 4, 1.0)).
-
 rongiga(riia, berlin, 680, time(1, 2, 3.0), time(12, 4, 1.0)).
-
 lennukiga(tallinn, helsinki, 30, time(1, 2, 3.0), time(12, 4, 1.0)).
 lennukiga(helsinki, paris, 180, time(1, 2, 3.0), time(12, 4, 1.0)).
 lennukiga(paris, berlin, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
@@ -143,26 +140,26 @@ reisi_transpordiga(From, To, MineTransportPath) :-
     (getPath(From, To, [From], Path, PathMethod, _); getPath(From, To, false, [From], Path, PathMethod, _, _)),
     mineConstructor([From | Path], PathMethod, MineTransportPath).
 
-:- dynamic cheapest/2.
 odavaim_reis(From, To, _, _) :-
-    retractall(cheapest(_, _)),
     reisi(From, To, MinePath, Cost),
     (not(cheapest(_, _)) ; cheapest(X, _), X > Cost),
     retractall(cheapest(X, _, _)),
     asserta(cheapest(Cost, MinePath)),
     fail.
 odavaim_reis(_, _, Path, Price) :-
-    cheapest(Price, Path).
+    cheapest(Price, Path),
+    retractall(cheapest(_, _)).
 
-:- dynamic shortest/3.
 lyhim_reis(From, To, _, _) :-
-    retractall(shortest(_, _)),
     asserta(hourconstraint),
-    reisi(From, To, MinePath, Cost, Time),
+    (getPath(From, To, false, [From], Path, PathMethod, Costs, _)),
+        mineConstructor([From | Path], PathMethod, MinePath),
+        sum_list(Costs, Cost),
     (not(shortest(_, _, _)) ; shortest(X, _, _), substractTime(X, Time, time(H, M, S)), H >= 0, M >= 0, S >= 0),
     retractall(shortest(X, _, _)),
     asserta(shortest(Time, Cost, MinePath)),
     fail.
 lyhim_reis(_, _, Path, Price) :-
     retractall(hourconstraint),
-    shortest(_, Price, Path).
+    shortest(_, Price, Path),
+    retractall(shortest(_, _)).
