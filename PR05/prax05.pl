@@ -1,9 +1,25 @@
 :- dynamic hourconstraint/0.
 :- dynamic shortest/3.
 :- dynamic cheapest/2.
-laevaga/3.
+laevaga(tallinn, helsinki, 120).
+laevaga(tallinn, stockholm, 480).
+laevaga(helsiki, stockholm, 120).
+bussiga(tallinn, riia, 300).
+rongiga(riia, berlin, 680).
+lennukiga(tallinn, helsinki, 30).
+lennukiga(helsinki, paris, 180).
+lennukiga(paris, berlin, 120).
+lennukiga(paris, tallinn, 120).
 
-
+laevaga(tallinn, helsinki, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
+laevaga(tallinn, stockholm, 480, time(1, 2, 3.0), time(12, 4, 1.0)).
+laevaga(helsiki, stockholm, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
+bussiga(tallinn, riia, 300, time(1, 2, 3.0), time(12, 4, 1.0)).
+rongiga(riia, berlin, 680, time(1, 2, 3.0), time(12, 4, 1.0)).
+lennukiga(tallinn, helsinki, 30, time(1, 2, 3.0), time(12, 4, 1.0)).
+lennukiga(helsinki, paris, 180, time(1, 2, 3.0), time(12, 4, 1.0)).
+lennukiga(paris, berlin, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
+lennukiga(paris, tallinn, 120, time(1, 2, 3.0), time(12, 4, 1.0)).
 
 % checks if can travel between From and To, also gives the transportation method in With and time in Time.
 canReisi(From, To, With, Time) :-
@@ -127,7 +143,7 @@ reisi_transpordiga(From, To, MineTransportPath) :-
 odavaim_reis(From, To, _, _) :-
     reisi(From, To, MinePath, Cost),
     (not(cheapest(_, _)) ; cheapest(X, _), X > Cost),
-    retractall(cheapest(X, _, _)),
+    retractall(cheapest(X, _)),
     asserta(cheapest(Cost, MinePath)),
     fail.
 odavaim_reis(_, _, Path, Price) :-
