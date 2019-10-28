@@ -29,7 +29,7 @@ def build_facts():
             time.sleep(0.4)
             for i in range(2):
                 x = requests.get(
-                    f"https://api.lufthansa.com/v1/operations/schedules/{combination[(0 + i) % 2]}/{combination[(1 + i) % 2]}/{TODAY}?limit=6",
+                    f"https://api.lufthansa.com/v1/operations/schedules/{combination[(0 + i) % 2]}/{combination[(1 + i) % 2]}/{TODAY}?limit=10",
                     "",
                     headers={
                         "Accept": "application/json",
@@ -64,16 +64,14 @@ class Prologer:
         build_facts()
         self.prolog.consult(f"{PROLOG_FILE}")
         self.prolog.consult(f"{TODAY}")
-        # self.prolog.query(f"consult(a{TODAY}.pl).")
 
     def query(self, query):
         return self.prolog.query(query)
 
 
 if __name__ == '__main__':
-    queries = ["odavaim_reis(uk, estonia, X, Y).", "lyhim_reis(uk, estonia, X, Y)."]
+    queries = ["odavaim_reis(estonia, denmark, X, Y).", "lyhim_reis(estonia, denmark, X, Y)."]
     prologger = Prologer()
-    # prologger.query(f"consult({TODAY}.pl).")
     print("starting queries")
     for query in queries:
         for solution in prologger.query(query):

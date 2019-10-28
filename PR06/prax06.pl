@@ -9,26 +9,6 @@ mineConstructor([E1, E2 | T], Result) :-
     mineConstructor([E2 | T], SmallerResult),
     Result = mine(E1, E2, lennukiga, SmallerResult).
 
-%addTime(X, Y, Z) :-
-%    X = time(H1, M1, S1),
-%    Y = time(H2, M2, S2),
-%    NewTime is S1 + S2 + (M1 + M2) * 60 + (H1 + H2) * 3600,
-%    S3 is NewTime mod 60,
-%    NewTimeMins is NewTime // 60,
-%    M3 is NewTimeMins mod 60,
-%    H3 is NewTimeMins // 60,
-%    Z = time(H3, M3, S3).
-%substractTime(X, Y, Z) :-
-%    X = time(H1, M1, S1),
-%    Y = time(H2, M2, S2),
-%    NewTime is S1 - S2 + (M1 - M2) * 60 + (H1 - H2) * 3600,
-%    (NewTime < 0, NewNewTime is NewTime + 86400 ; NewTime >= 0, NewNewTime is NewTime),
-%    S3 is NewNewTime mod 60,
-%    NewTimeMins is NewNewTime // 60,
-%    M3 is NewTimeMins mod 60,
-%    H3 is NewTimeMins // 60,
-%    Z = time(H3, M3, S3).
-
 addTime(X, Y, Z) :-
     X = time(H1, M1, S1),
     Y = time(H2, M2, S2),
