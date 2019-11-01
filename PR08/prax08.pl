@@ -1,4 +1,4 @@
-:- dynamic node/1, visited/1.
+:- dynamic node/1, visited/1, deathOption/3.
 
 % is_a(SubClass, Class).
 is_a(roovloomad,elusolend).
@@ -61,4 +61,17 @@ extinction(_, Terminals, Count) :-
     retractall(node(_)),
     retractall(visited(_)).
 
-
+% find_most_sensitive_species(L, C, T).
+find_most_sensitive_species(_, _, _) :-
+    retractall(deathOption(_, _, _)), fail.
+find_most_sensitive_species(_, _, _) :-
+    eats(_, Node),
+    extinction(Node, Terminals, Count),
+        (not(deathOption(_, _, _)), asserta(deathOption(Node, Terminals, Count)) ;
+        deathOption(_, _, CurCount), Count == max(CurCount, Count),
+            (Count == CurCount, asserta(deathOption(Node, Terminals, Count)) ;
+            Count \= CurCount, retractall(deathOption(_, _, _)), asserta(deathOption(Node, Terminals, Count)))
+        ),
+    fail.
+find_most_sensitive_species(L, C, T) :-
+    deathOption(L, T, C).
