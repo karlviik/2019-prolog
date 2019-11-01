@@ -1,4 +1,4 @@
-:- dynamic node/1, startNode/1.
+:- dynamic node/1, visited/1.
 
 % is_a(SubClass, Class).
 is_a(roovloomad,elusolend).
@@ -37,32 +37,28 @@ count_terminals(_, Terminals, Count) :-
 
 get_to_terminal_with_eats(Node, _) :-
     not(is_a(_, Node)),
+    not(visited(Node)),
+    asserta(visited(Node)),
     asserta(node(Node)),
     eats(Something, Node),
-    asserta(startNode(Something)),
+    get_to_terminal_with_eats(Something, _),
     fail.
 get_to_terminal_with_eats(Node, Terminal) :-
+    not(visited(Node)),
+    asserta(visited(Node)),
     is_a(NonTerminal, Node),
-    (eats(Something, Node), asserta(startNode(Something)), get_to_terminal(NonTerminal, Terminal);
-    not(eats(_, Node)), get_to_terminal_with_eats(NonTerminal, Terminal)).
+        (eats(Something, Node),
+            (get_to_terminal_with_eats(Something, _) ; true),
+        get_to_terminal(NonTerminal, Terminal);
+        not(eats(_, Node)), get_to_terminal_with_eats(NonTerminal, Terminal)).
 
 % extinction(Who,What_spieces,How_many)
 extinction(Who, _, _) :-
-    not(startNode(_)),
     get_to_terminal_with_eats(Who, _).
-extinction(_, _, _) :-
-    startNode(X),
-    write(X), nl,
-    retract(startNode(X)),
-    get_to_terminal_with_eats(X, _), fail.
-extinction(_, _, _) :-
-    startNode(X),
-    write(X), nl, nl,
-    retract(startNode(X)),
-    get_to_terminal_with_eats(X, _), fail.
 extinction(_, Terminals, Count) :-
     bagof(Terminal, node(Terminal), Terminals),
     length(Terminals, Count),
-    retractall(node(_)).
+    retractall(node(_)),
+    retractall(visited(_)).
 
 
