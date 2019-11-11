@@ -7,12 +7,12 @@
 %maarsona--> [liiga].
 %omadussona --> [lyhike].
 %tegusonafraas --> tegusona, nimisonafraas.
-%tegusona --> [tingib];[pohjustab]..
+%tegusona --> [tingib];[pohjustab].
 
 
 % ül 3
 liitlause --> lihtlause, uhend, lihtlause.
-liitlause --> liitlause, uhend, lihtlause.
+liitlause --> lihtlause, uhend, liitlause.
 uhend --> [','].
 lihtlause --> nimisonafraas, tegusonafraas.
 nimisonafraas --> maarsonafraas, nimisona.
