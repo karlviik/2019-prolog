@@ -7,7 +7,7 @@
 %maarsona--> [liiga].
 %omadussona --> [lyhike].
 %tegusonafraas --> tegusona, nimisonafraas.
-%tegusona --> [tingib];[pohjustab].
+%tegusona --> [tingib];[pohjustab]..
 
 
 % ül 3
