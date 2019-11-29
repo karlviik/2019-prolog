@@ -11,15 +11,14 @@
 
 
 % ül 3
-liitlause --> lihtlause, uhend, lihtlause.
-liitlause --> lihtlause, uhend, liitlause.
+liitlause --> lihtlause, uhend, (lihtlause ; liitlause).
 uhend --> [','].
 lihtlause --> nimisonafraas, tegusonafraas.
 nimisonafraas --> maarsonafraas, nimisona.
 maarsonafraas --> omadussona, maarsona ; [].
+tegusonafraas --> meetod, tegusona, maarsonafraas.
 maarsona --> [kivile] ; [upakile].
 nimisona --> [sammal] ; [uhkus] ; [raha] ; [volad].
 omadussona --> [veerevale] ; [].
 tegusona --> [kasva] ; [ajab] ; [tuleb] ; [laheb] ; [jaavad].
-tegusonafraas --> meetod, tegusona, maarsonafraas.
 meetod --> [ei] ; [].
