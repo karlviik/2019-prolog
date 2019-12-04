@@ -8,8 +8,8 @@
 %valged(human)  % valgetega mängib inimine
 %mustad(k1)     % mustadega mängib programm k1
 
-valged(kabe).		% Valged
-mustad(human).		% Mustad
+valged(test).		% Valged
+mustad(iaib185043).		% Mustad
 
 % Seejärel laadida mällu see programm (graphicArbiter) ja võistlevad kabeprogrammid.
 %                                                         _________________________
@@ -692,7 +692,7 @@ partner_color(20, 10).
 
 %============================= Announce_winner =====================================
 announce_winner(_):-	% Kui viik
-		move_count(M), 
+		move_count(M),
 		M >= 14,
 		nl, write('The game is a draw (no winner). '),
 		arv(NNN),nl,write('Total number of moves is '), write(NNN).
@@ -761,14 +761,6 @@ graph_board(X, Y):-
 	 (P = 2, C = black, N = pawn); (P = 10, C = white, N = rook); (P = 20, C = black, N = rook)),
 	put_piece(Board, N, C, Where),
 	fail.
-%graph_board(X, Y):-
-%	\+ruut(X, Y, _),
-%	b(Board),
-%	X1 is X - 1,
-%	Y1 is Y - 1,
-%	xy_where(Y1, X1, Where),
-%	put_piece(Board, empty, _, Where),
-%	fail.
 graph_board(X, Y):-
 	Y1 is Y + 1,
 	graph_board(X, Y1).

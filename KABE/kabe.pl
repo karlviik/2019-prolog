@@ -1,255 +1,301 @@
 :- dynamic mycolour/1.    % so far unset anywhere
 %-------------------- MANIPULATING GAME-------------------------
 % X1 Y1 move from, X2 Y2 move to, XT YT take, XT = 0 if no take.
-move(X1,Y1,XT,YT,X2,Y2) :-
-        (XT == 0, retract(ruut(XT, YT, _)), asserta(ruut(XT, YT, 0))
+do_actual_move(X1, Y1, Col1, XT, YT, X2, Y2, Col2) :-
+        (XT =\= 0, retract(ruut(XT, YT, _)), asserta(ruut(XT, YT, 0))
     ;
-        XT =\= 0),
-    retract(ruut(X1, Y1, Col)), retract(ruut(X2, Y2, _)), asserta(ruut(X1, Y1, 0)), asserta(ruut(X2, Y2, Col)).
+        XT == 0),
+    retract(ruut(X1, Y1, Col1)), retract(ruut(X2, Y2, 0)), asserta(ruut(X1, Y1, 0)), asserta(ruut(X2, Y2, Col2)).
 %---------------------------------------------------------------
 
 %--------------------COPY THE BOARD TO square(X, Y, Col)--------
 :- dynamic square/3.
-:- dynamic mine/1.
-:- dynamic their/1.
+:- dynamic whites/1.
+:- dynamic blacks/1.
+:- dynamic count/2.
 copy :-
     retractall(square(_, _, _)),
-    retractall(mine(_)),
-    retractall(their(_)),
-    asserta(whites(0)),
-    asserta(blacks(0)),
+    retractall(count(_, _)),
+    asserta(count(1, 0)),
+    asserta(count(2, 0)),
     fail.
 copy :-
     ruut(X, Y, Col),
-    mycolour(Me),
     (
-        Me == 1,
-        (
-            (Col == 1 ; Col == 10), mine(C), retract(mine(C)), C1 is C + 1, asserta(mine(C1))
-        ;
-            (Col == 2 ; Col == 20), their(C), retract(their(C)), C1 is C + 1, asserta(their(C1))
-        ;
-            Col == 0
-        )
-    ;
-        Me == 2,
-        (
-            (Col == 2 ; Col == 20), mine(C), retract(mine(C)), C1 is C + 1, asserta(mine(C1))
-        ;
-            (Col == 1 ; Col == 10), their(C), retract(their(C)), C1 is C + 1, asserta(their(C1))
-        ;
-            Col == 0
-        )
+        (Col == 1 ; Col == 10), count(1, C), retract(count(1, C)), C1 is C + 1, asserta(count(1, C1))
+      ;
+        (Col == 2 ; Col == 20), count(2, C), retract(count(2, C)), C1 is C + 1, asserta(count(2, C1))
+      ;
+        Col == 0
     ),
     asserta(square(X, Y, Col)),
     fail.
 copy.
 %---------------------------------------------------------------
-/*
-get moves for color, grab together all moves
-    if one of those moves is with taking, check if there are any more moves that can be done by those pieces that take after taking
-    multiple takins and such should count as just one move or something, they shouldn't be really complex anyways, unless boulder does the moves...
-*/
-
 
 %-----------------MUST TAKE WITH THIS PIECE---------------------
 :- dynamic enemycols/1.
-move_take(X1, Y1, XT, YT, X2, Y2) :-
-    retractall(enemycols(_)),
-    square(X1, Y1, Col),
-    ((Col == 1 ; Col == 10), asserta(enemycols(2)), asserta(enemycols(20)) ; (Col == 2 ; Col == 20), asserta(enemycols(1)), asserta(enemycols(10))),
-    if col is rock, do rock, if boulder, do boulder.
+move_take(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2) :-
+    (
+        (Col1 == 1 ; Col1 == 2), move_take_rock(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)
+      ;
+        (Col1 == 10 ; Col1 == 20), move_take_boulder(X1, Y1, XT, YT, ColT, X2, Y2), Col2 = Col1
+    ).
 
-move_take_rock(X1, Y1, XT, YT, X2, Y2) :-
-    (XT is X1 + 1, YT is X1 + 1, X2 is X1 + 2, Y2 is Y1 + 2, square(XT, YT, Col), enemycols(Col), square(X2, Y2, 0)) ;
-    (XT is X1 + 1, YT is X1 - 1, X2 is X1 + 2, Y2 is Y1 - 2, square(XT, YT, Col), enemycols(Col), square(X2, Y2, 0)) ;
-    (XT is X1 - 1, YT is X1 + 1, X2 is X1 - 2, Y2 is Y1 + 2, square(XT, YT, Col), enemycols(Col), square(X2, Y2, 0)) ;
-    (XT is X1 - 1, YT is X1 - 1, X2 is X1 - 2, Y2 is Y1 - 2, square(XT, YT, Col), enemycols(Col), square(X2, Y2, 0)).
+move_take_rock(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2) :-
+    (XT is X1 + 1, X2 is X1 + 2 ; XT is X1 - 1, X2 is X1 - 2),
+    (YT is Y1 + 1, Y2 is Y1 + 2 ; YT is Y1 - 1, Y2 is Y1 - 2),
+    square(XT, YT, ColT), enemycols(ColT), square(X2, Y2, 0),
+    (
+        Col1 == 1,
+        (
+            X2 == 8, Col2 is 10
+          ;
+            X2 \= 8, Col2 is Col1
+        )
+      ;
+        Col1 == 2,
+        (
+            X2 == 1, Col2 is 20
+          ;
+            X2 \= 1, Col2 is Col1
+        )
+    ).
 
-move_take_boulder(X1, Y1, XT, YT, X2, Y2) :-
-    (Xmove is 1, Ymove is 1 ; Xmove is 1, Ymove is -1 ; Xmove is -1, Ymove is 1; Xmove is -1, Ymove is -1),
+move_take_boulder(X1, Y1, XT, YT, ColT, X2, Y2) :-
+    (Xmove is 1 ; Xmove is -1),(Ymove is 1 ; Ymove is -1),
     Xnext is X1 + Xmove, Ynext is Y1 + Ymove,
-    searchForEnemy(Xmove, Ymove, Xnext, Ynext, XT, YT, X2, Y2).
+    searchForEnemy(Xmove, Ymove, Xnext, Ynext, XT, YT, ColT, X2, Y2).
 
-searchForEnemy(Xmove, Ymove, Xnext, Ynext, XT, YT, X2, Y2) :-
+searchForEnemy(Xmove, Ymove, Xcur, Ycur, XT, YT, ColT, X2, Y2) :-
+    square(Xcur, Ycur, ColCur),
+    XNext is Xcur + Xmove, YNext is Ycur + Ymove,
+    (
+        enemycols(ColCur), ColT is ColCur, XT is Xcur, YT is Ycur, searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2)
+      ;
+        ColCur == 0, searchForEnemy(Xmove, Ymove, XNext, YNext, XT, YT, ColT, X2, Y2)
+    ).
 
-/*
-ruut(X, Y, Status).
-    Status = 1 % valge
-    Status = 2 % must
-    Status = 10 % valge tamm
-    Status = 20 % must tamm
-Valged all, ehk valge on ruut(1, 1, 1)
+searchForFreeSpots(Xmove, Ymove, Xcur, Ycur, X2, Y2) :-
+    square(Xcur, Ycur, ColCur), ColCur == 0,
+    (X2 is Xcur, Y2 is Ycur ; XNext is Xcur + Xmove, YNext is Ycur + Ymove, searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2)).
+%----------------------------------------------------------------
+
+%----------------------------JUST MOVE---------------------------
+just_move(X1, Y1, Col, X2, Y2, Col2) :-
+    square(X1, Y1, Col),
+    (Col == 1, Way is 1; Col == 2, Way is -1), move_rock(X1, Y1, Col, Way, X2, Y2, Col2) ;
+    (Col == 10 ; Col == 20), move_boulder(X1, Y1, X2, Y2), Col2 = Col.
+
+move_rock(X1, Y1, Col1, Way, X2, Y2, Col2) :-
+    X2 is X1 + Way, (Y2 is Y1 - 1 ; Y2 is Y1 + 1), square(X2, Y2, 0),
+    (
+        Col1 == 1,
+        (
+            X2 == 8, Col2 is 10
+          ;
+            X2 \= 8, Col2 is Col1
+        )
+      ;
+        Col1 == 2,
+        (
+            X2 == 1, Col2 is 20
+          ;
+            X2 \= 1, Col2 is Col1
+        )
+    ).
+
+move_boulder(X1, Y1, X2, Y2) :-
+    (Xmove is 1 ; Xmove is -1),
+    (Ymove is 1 ; Ymove is -1),
+    XNext is X1 + Xmove,
+    YNext is Y1 + Ymove,
+    searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2).           % this is from move with taking
+%----------------------------------------------------------------
+
+%-----------------GET ALL POSSIBLE TAKING MOVES WITH COL---------
+get_all_take_moves_with_col(Col, ListOfTakes) :-            % takes are in form of move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)
+    retractall(enemycols(_)),
+    (Col == 1, asserta(enemycols(2)), asserta(enemycols(20)) ; Col == 2, asserta(enemycols(1)), asserta(enemycols(10))),
+    findall(Take, get_all_take_manager(Col, Take), ListOfTakes).
+
+get_all_take_manager(Col, Take) :-
+    (
+        Col == 1, (square(X1, Y1, 1), Col1 is 1 ; square(X1, Y1, 10), Col1 is 10)
+      ;
+        Col == 2, (square(X1, Y1, 2), Col1 is 2 ; square(X1, Y1, 20), Col1 is 20)
+    ),
+    move_take(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2),
+    Take = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2).
+%----------------------------------------------------------------
+
+%------------GET ALL POSSIBLE TAKE MOVES WITH ONE COORD----------
+get_all_take_moves_with_this(X1, Y1, ListOfTakes) :-
+    square(X1, Y1, Col1),
+    retractall(enemycols(_)),
+    ((Col1 == 1 ; Col1 == 10), asserta(enemycols(2)), asserta(enemycols(20)) ; (Col1 == 2 ; Col1 == 20), asserta(enemycols(1)), asserta(enemycols(10))),
+    findall(Take, (move_take(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2), Take = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)), ListOfTakes).
+%----------------------------------------------------------------
+
+%-------------GET ALL POSSIBLE JUST MOVES WITH COL---------------
+get_all_just_moves_with_col(Col, ListOfMoves) :-            % moves are in form of move(X1, Y1, Col1, 0, 0, 0, X2, Y2, Col2)
+    findall(Move, get_all_move_manager(Col, Move), ListOfMoves).
+
+get_all_move_manager(Col, Move) :-
+    (
+        Col == 1, (square(X1, Y1, 1), Col1 is 1 ; square(X1, Y1, 10), Col1 is 10)
+      ;
+        Col == 2, (square(X1, Y1, 2), Col1 is 2 ; square(X1, Y1, 20), Col1 is 20)
+    ),
+    just_move(X1, Y1, Col1, X2, Y2, Col2),
+    Move = move(X1, Y1, Col1, 0, 0, 0, X2, Y2, Col2).
+%----------------------------------------------------------------
+
+%-------------GET ALL VALID MOVES WITH COL-----------------------
+get_all_valid_moves(Col, IsTake, ListOfMoves) :-        % IsTake = 1 if it's taking, 0 if just moving
+    get_all_take_moves_with_col(Col, ListOfTakes),
+    (
+        length(ListOfTakes, 0), get_all_just_moves_with_col(Col, ListOfMoves), IsTake is 0
+    ;
+        not(length(ListOfTakes, 0)), ListOfMoves = ListOfTakes, IsTake is 1
+    ).
+%----------------------------------------------------------------
+
+%--------------MOVE SIMULATING AND DE-SIMULATING-----------------
+simulate_move(Move) :-
+    Move = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2),
+    square(X1, Y1, Col1),
+    retract(square(X1, Y1, Col1)), asserta(square(X1, Y1, 0)),
+    retract(square(X2, Y2, 0)), asserta(square(X2, Y2, Col2)),
+    (
+        XT == 0
+      ;
+        XT \= 0,
+        retract(square(XT, YT, ColT)),
+        asserta(square(XT, YT, 0)),
+        (
+            (ColT == 1 ; ColT == 10), count(1, C), retract(count(1, C)), C1 is C - 1, asserta(count(1, C1))
+          ;
+            (ColT == 2 ; ColT == 20), count(2, C), retract(count(2, C)), C1 is C - 1, asserta(count(2, C1))
+        )
+    ).
+
+desimulate_move(Move) :-
+    Move = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2),
+    square(X2, Y2, Col2),
+    retract(square(X2, Y2, Col2)), asserta(square(X2, Y2, 0)),
+    retract(square(X1, Y1, 0)), asserta(square(X1, Y1, Col1)),
+    (
+        XT == 0
+      ;
+        XT \= 0,
+        retract(square(XT, YT, 0)),
+        asserta(square(XT, YT, ColT)),
+        (
+            (ColT == 1 ; ColT == 10), count(1, C), retract(count(1, C)), C1 is C + 1, asserta(count(1, C1))
+          ;
+            (ColT == 2 ; ColT == 20), count(2, C), retract(count(2, C)), C1 is C + 1, asserta(count(2, C1))
+        )
+    ).
+%----------------------------------------------------------------
+
+%--------------------------MINIMAXER-----------------------------
+% need to make rule for 0 depth
+sim_manager(0, _, _, _, _, 0, _).
+sim_manager(Depth, Col, Multiplier, XMust, YMust, BestValue, BestMove) :-
+    Depth > 0,
+    (Col == 1, NextCol is 2 ; Col == 2, NextCol is 1),
+    NextDepth is Depth - 1,
+    NextMultiplier is Multiplier * -1,
+    (
+        XMust == 0,
+        get_all_valid_moves(Col, IsTake, ListOfMoves),
+        % If the moves are just moves
+        (
+            IsTake == 0,
+            go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
+          ;
+            IsTake == 1,
+            go_deeper_take(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
+        )
+        ;
+        XMust \= 0,
+        go_deeper_this_coord(XMust, YMust, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
+    ).
+
+go_deeper_move([], _, _, NeMu, BeVa, 0) :-  % if these values are actually returned, then it's game over
+    NeMu == 1, BeVa is 999 ; NeMu == -1, BeVa is -999.
+go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove) :-
+    ListOfMoves = [ CurMove | RestOfMoves ],
+    simulate_move(CurMove),
+    sim_manager(NextDepth, NextCol, NextMultiplier, 0, 0, ThisValue, _),
+    desimulate_move(CurMove),
+    go_deeper_move(RestOfMoves, NextCol, NextDepth, NextMultiplier, RestValue, RestMove),
+    (
+        NextMultiplier == 1,        % means this level is opponent level, must get min value
+        (
+            RestValue < ThisValue, BestValue = RestValue, BestMove = RestMove
+          ;
+            RestValue >= ThisValue, BestValue = ThisValue, BestMove = CurMove
+        )
+      ;
+        NextMultiplier == -1,       % means this level is my level, must get max value
+        (
+            RestValue > ThisValue, BestValue = RestValue, BestMove = RestMove
+          ;
+            RestValue =< ThisValue, BestValue = ThisValue, BestMove = CurMove
+        )
+    ).
+
+go_deeper_take([], _, _, NeMu, BeVa, 0) :-  % these values should never be returned, in theory
+    NeMu == 1, BeVa is 200 ; NeMu == -1, BeVa is -200.
+go_deeper_take(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove) :-
+    ListOfMoves = [ ThisMove | RestOfMoves ],
+    ThisMove = move(_, _, _, _, _, TakeCol, X2, Y2, _),
+    simulate_move(ThisMove),
+    (
+        count(NextCol, 0), ThisValue is -999 * NextMultiplier         % 999 * NextMultiplier * -1, there are no opponent pieces left
+      ;
+        not(count(NextCol, 0)), % simulate takes as long as there are takes
+        get_all_take_moves_with_this(X2, Y2, ListOfTakes),
+        ((TakeCol == 20 ; TakeCol == 10), ValueAdd = 3; (TakeCol == 2 ; TakeCol == 1), ValueAdd = 1), RealValueAdd is ValueAdd * NextMultiplier * -1,        %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VALUES FOR PIECES
+        (
+            length(ListOfTakes, 0), sim_manager(NextDepth, NextCol, NextMultiplier, 0, 0, SubValue, _), ThisValue is SubValue + RealValueAdd
+          ;
+            not(length(ListOfTakes, 0)), go_deeper_take(ListOfTakes, NextCol, NextDepth, NextMultiplier, SubValue, _), ThisValue is SubValue + RealValueAdd
+        )
+
+    ),
+    desimulate_move(ThisMove),
+    go_deeper_take(RestOfMoves, NextCol, NextDepth, NextMultiplier, RestValue, RestMove),
+    (
+        NextMultiplier == 1,        % means this level is opponent level, must get min value
+        (
+            RestValue < ThisValue, BestValue = RestValue, BestMove = RestMove
+          ;
+            RestValue >= ThisValue, BestValue = ThisValue, BestMove = ThisMove
+        )
+      ;
+        NextMultiplier == -1,       % means this level is my level, must get max value
+        (
+            RestValue > ThisValue, BestValue = RestValue, BestMove = RestMove
+          ;
+            RestValue =< ThisValue, BestValue = ThisValue, BestMove = ThisMove
+        )
+    ).
+
+go_deeper_this_coord(X1, Y1, NextCol, NextDepth, NextMultiplier, BestValue, BestMove) :-
+    get_all_take_moves_with_this(X1, Y1, ListOfTakes),
+    go_deeper_take(ListOfTakes, NextCol, NextDepth, NextMultiplier, BestValue, BestMove).
 
 
+:- module(iaib185043).
 
-*/
-main(MyColor):-
-    ruut(X,Y, MyColor),
-    nl, write([MyColor, 'Nupp ', ruudul, X,Y]),
-    leia_suund(MyColor,Suund),
-    kaigu_variandid(X,Y,Suund,X1,Y1),
+iaib185043(Col, X, Y):-
+    copy,
+    sim_manager(4, Col, 1, X, Y, Val, BestMove),
+    BestMove = move(X1, Y1, Col1, XT, YT, _, X2, Y2, Col2),
+    write(BestMove), write(Val),
+    do_actual_move(X1, Y1, Col1, XT, YT, X2, Y2, Col2),
     !.
-main(_).
-
-leia_suund(1,1):- !.
-leia_suund(2,-1).
-
-%--------------------------------
-kaigu_variandid(X,Y,Suund,X1,Y1):-
-    votmine(X,Y,Suund,X1,Y1),!.
-kaigu_variandid(X,Y,Suund,X1,Y1):-
-    kaimine(X,Y,Suund,X1,Y1),!.
-%--------------------------------
-votmine(X,Y,Suund,X1,Y1):-
-    kas_saab_votta(X,Y,Suund,X1,Y1,X2,Y2),
-    vota(X,Y,Suund,X1,Y1,X2,Y2),
-    fail.
-
-kas_saab_votta(X,Y,Suund,X1,Y1,X2,Y2):-  % Votmine edasi paremale
-    X1 is X + Suund,
-    Y1 is Y + 1,
-    ruut(X1,Y1, Color),
-    Color =\= MyColor, Color =\= 0,
-    X2 is X1 + Suund,
-    Y2 is Y1 + 1,
-    ruut(X2,Y2, 0).
-kas_saab_votta(X,Y,Suund,X1,Y1,X2,Y2):-  % Votmine edasi vasakule
-    X1 is X + Suund,
-    Y1 is Y - 1,
-    ruut(X1,Y1, Color),
-    Color =\= MyColor, Color =\= 0,
-    X2 is X1 + Suund,
-    Y2 is Y1 - 1,
-    ruut(X2,Y2, 0).
-kas_saab_votta(X,Y,Suund,X1,Y1,X2,Y2):-  % Votmine tagasi paremale
-    X1 is X + Suund * -1,
-    Y1 is Y + 1,
-    ruut(X1,Y1, Color),
-    Color =\= MyColor, Color =\= 0,
-    X2 is X1 + Suund * -1,
-    Y2 is Y1 + 1,
-    ruut(X2,Y2, 0).
-kas_saab_votta(X,Y,Suund,X1,Y1,X2,Y2):-  % Votmine tagasi vasakule
-    X1 is X + Suund * -1,
-    Y1 is Y - 1,
-    ruut(X1,Y1, Color),
-    Color =\= MyColor, Color =\= 0,
-    X2 is X1 + Suund * -1,
-    Y2 is Y1 - 1,
-    ruut(X2,Y2, 0).
-
-%--------------------------------
-kaimine(X,Y,Suund,X1,Y1):-
-    kas_naaber_vaba(X,Y,Suund,X1,Y1),
-    tee_kaik(X,Y,X1,Y1),
-    write([' kaib ', X1,Y1]),
-    fail.
-kaimine(_,_,_,_,_).
-
-kas_naaber_vaba(X,Y,Suund,X1,Y1):-
-    X1 is X +Suund,
-    Y1 is Y + 1,
-    ruut(X1,Y1, 0).
-kas_naaber_vaba(X,Y,Suund,X1,Y1):-
-    X1 is X +Suund,
-    Y1 is Y -1,
-    ruut(X1,Y1, 0), write(' voi ').
-
-kas_naaber_vaba(X,Y,X1,Y1):-
-    ruut(X,Y, Status),
-    assert(ruut1(X1,Y1, Status)),!.
-
-/*
-%---------MÄNGU ALGSEIS-------------
-% Valged
-%ruut(1,1,1).
-%ruut(1,3,1).
-%ruut(1,5,1).
-%ruut(1,7,1).
-%ruut(2,2,1).
-%ruut(2,4,1).
-%ruut(2,6,1).
-%ruut(2,8,1).
-%ruut(3,1,1).
-%ruut(3,3,1).
-%ruut(3,5,1).
-%ruut(3,7,1).
-%% Tühjad ruudud
-%ruut(4,2,0).
-%ruut(4,4,0).
-%ruut(4,6,0).
-%ruut(4,8,0).
-%ruut(5,1,0).
-%ruut(5,3,0).
-%ruut(5,5,0).
-%ruut(5,7,0).
-%% Mustad
-%ruut(6,2,2).
-%ruut(6,4,2).
-%ruut(6,6,2).
-%ruut(6,8,2).
-%ruut(7,1,2).
-%ruut(7,3,2).
-%ruut(7,5,2).
-%ruut(7,7,2).
-%ruut(8,2,2).
-%ruut(8,4,2).
-%ruut(8,6,2).
-%ruut(8,8,2).
-*/
-
-/*
-ruut(X,Y, Status).  %   kus X, Y [1,8]
-Status = 0      % tühi
-Status = 1      % valge
-Status = 2      %  must
-*/
-
-%=================== Print checkers board - Start ==================
-print_board :-
-	print_squares(8).
-print_squares(Row) :-
-	between(1, 8, Row),
-	write('|'), print_row_squares(Row, 1), write('|'), nl,
-	NewRow is Row - 1,
-	print_squares(NewRow), !.
-print_squares(_) :- !.
-print_row_squares(Row, Col) :-
-	between(1, 8, Col),
-	ruut(Col, Row, Status), write(' '), write(Status), write(' '),
-	NewCol is Col + 1,
-	print_row_squares(Row, NewCol), !.
-print_row_squares(_, _) :- !.
-%=================== Print checkers board - End ====================
-
-%=================== Print checkers board v2 - Start ==================
-status_sq(ROW,COL):-
-	(	ruut(ROW,COL,COLOR),
-		write(COLOR)
-	) ; (
-		write(' ')
-	).
-status_row(ROW):-
-	write('row # '),write(ROW), write('   '),
-	status_sq(ROW,1),
-	status_sq(ROW,2),
-	status_sq(ROW,3),
-	status_sq(ROW,4),
-	status_sq(ROW,5),
-	status_sq(ROW,6),
-	status_sq(ROW,7),
-	status_sq(ROW,8),
-	nl.
-% print the entire checkers board..
-status:-
-	nl,
-	status_row(8),
-	status_row(7),
-	status_row(6),
-	status_row(5),
-	status_row(4),
-	status_row(3),
-	status_row(2),
-	status_row(1).
-%=================== Print checkers board v2 - End ====================
+iaib185043(_, _, _).
