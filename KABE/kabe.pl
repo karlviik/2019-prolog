@@ -1,18 +1,30 @@
-:- dynamic mycolour/1.    % so far unset anywhere
-%-------------------- MANIPULATING GAME-------------------------
-% X1 Y1 move from, X2 Y2 move to, XT YT take, XT = 0 if no take.
-do_actual_move(X1, Y1, Col1, XT, YT, X2, Y2, Col2) :-
-        (XT =\= 0, retract(ruut(XT, YT, _)), asserta(ruut(XT, YT, 0))
-    ;
-        XT == 0),
-    retract(ruut(X1, Y1, Col1)), retract(ruut(X2, Y2, 0)), asserta(ruut(X1, Y1, 0)), asserta(ruut(X2, Y2, Col2)).
-%---------------------------------------------------------------
-
-%--------------------COPY THE BOARD TO square(X, Y, Col)--------
+:- module(iaib185043).
 :- dynamic square/3.
 :- dynamic whites/1.
 :- dynamic blacks/1.
 :- dynamic count/2.
+:- dynamic bouldermove/4.
+%----------------------DECLARING SOME STATIC FACTS--------------
+enemycols(1, 2).
+enemycols(1, 20).
+enemycols(10, 2).
+enemycols(10, 20).
+enemycols(2, 1).
+enemycols(2, 10).
+enemycols(20, 1).
+enemycols(20, 10).
+%-------------------- MANIPULATING GAME-------------------------
+% X1 Y1 move from, X2 Y2 move to, XT YT take, XT = 0 if no take.
+do_actual_move(X1, Y1, Col1, XT, YT, X2, Y2, Col2) :-
+    (
+        XT =\= 0, retract(ruut(XT, YT, _)), asserta(ruut(XT, YT, 0))
+      ;
+        XT == 0
+    ),
+    retract(ruut(X1, Y1, Col1)), retract(ruut(X2, Y2, 0)), asserta(ruut(X1, Y1, 0)), asserta(ruut(X2, Y2, Col2)).
+%---------------------------------------------------------------
+
+%--------------------COPY THE BOARD TO square(X, Y, Col)--------
 copy :-
     retractall(square(_, _, _)),
     retractall(count(_, _)),
@@ -34,18 +46,17 @@ copy.
 %---------------------------------------------------------------
 
 %-----------------MUST TAKE WITH THIS PIECE---------------------
-:- dynamic enemycols/1.
 move_take(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2) :-
     (
         (Col1 == 1 ; Col1 == 2), move_take_rock(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)
       ;
-        (Col1 == 10 ; Col1 == 20), move_take_boulder(X1, Y1, XT, YT, ColT, X2, Y2), Col2 = Col1
+        (Col1 == 10 ; Col1 == 20), move_take_boulder(X1, Y1, Col1, XT, YT, ColT, X2, Y2), Col2 = Col1
     ).
 
 move_take_rock(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2) :-
     (XT is X1 + 1, X2 is X1 + 2 ; XT is X1 - 1, X2 is X1 - 2),
     (YT is Y1 + 1, Y2 is Y1 + 2 ; YT is Y1 - 1, Y2 is Y1 - 2),
-    square(XT, YT, ColT), enemycols(ColT), square(X2, Y2, 0),
+    square(XT, YT, ColT), enemycols(Col1, ColT), square(X2, Y2, 0),
     (
         Col1 == 1,
         (
@@ -62,18 +73,18 @@ move_take_rock(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2) :-
         )
     ).
 
-move_take_boulder(X1, Y1, XT, YT, ColT, X2, Y2) :-
+move_take_boulder(X1, Y1, Col1, XT, YT, ColT, X2, Y2) :-
     (Xmove is 1 ; Xmove is -1),(Ymove is 1 ; Ymove is -1),
     Xnext is X1 + Xmove, Ynext is Y1 + Ymove,
-    searchForEnemy(Xmove, Ymove, Xnext, Ynext, XT, YT, ColT, X2, Y2).
+    searchForEnemy(X1, Y1, Col1, Xmove, Ymove, Xnext, Ynext, XT, YT, ColT, X2, Y2).
 
-searchForEnemy(Xmove, Ymove, Xcur, Ycur, XT, YT, ColT, X2, Y2) :-
+searchForEnemy(X1, Y1, Col1, Xmove, Ymove, Xcur, Ycur, XT, YT, ColT, X2, Y2) :-
     square(Xcur, Ycur, ColCur),
     XNext is Xcur + Xmove, YNext is Ycur + Ymove,
     (
-        enemycols(ColCur), ColT is ColCur, XT is Xcur, YT is Ycur, searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2)
+        enemycols(Col1, ColCur), ColT is ColCur, XT is Xcur, YT is Ycur, searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2)
       ;
-        ColCur == 0, searchForEnemy(Xmove, Ymove, XNext, YNext, XT, YT, ColT, X2, Y2)
+        ColCur == 0, asserta(bouldermove(X1, Y1, Xcur, Ycur)), searchForEnemy(X1, Y1, Col1, Xmove, Ymove, XNext, YNext, XT, YT, ColT, X2, Y2) %asserta(bouldermove(X1, Y1, Xcur, Ycur)),
     ).
 
 searchForFreeSpots(Xmove, Ymove, Xcur, Ycur, X2, Y2) :-
@@ -106,17 +117,17 @@ move_rock(X1, Y1, Col1, Way, X2, Y2, Col2) :-
     ).
 
 move_boulder(X1, Y1, X2, Y2) :-
-    (Xmove is 1 ; Xmove is -1),
-    (Ymove is 1 ; Ymove is -1),
-    XNext is X1 + Xmove,
-    YNext is Y1 + Ymove,
-    searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2).           % this is from move with taking
+    bouldermove(X1, Y1, X2, Y2),
+    retract(bouldermove(X1, Y1, X2, Y2)).
+%    (Xmove is 1 ; Xmove is -1),
+%    (Ymove is 1 ; Ymove is -1),
+%    XNext is X1 + Xmove,
+%    YNext is Y1 + Ymove,
+%    searchForFreeSpots(Xmove, Ymove, XNext, YNext, X2, Y2).           % this is from move with taking
 %----------------------------------------------------------------
 
 %-----------------GET ALL POSSIBLE TAKING MOVES WITH COL---------
 get_all_take_moves_with_col(Col, ListOfTakes) :-            % takes are in form of move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)
-    retractall(enemycols(_)),
-    (Col == 1, asserta(enemycols(2)), asserta(enemycols(20)) ; Col == 2, asserta(enemycols(1)), asserta(enemycols(10))),
     findall(Take, get_all_take_manager(Col, Take), ListOfTakes).
 
 get_all_take_manager(Col, Take) :-
@@ -132,8 +143,6 @@ get_all_take_manager(Col, Take) :-
 %------------GET ALL POSSIBLE TAKE MOVES WITH ONE COORD----------
 get_all_take_moves_with_this(X1, Y1, ListOfTakes) :-
     square(X1, Y1, Col1),
-    retractall(enemycols(_)),
-    ((Col1 == 1 ; Col1 == 10), asserta(enemycols(2)), asserta(enemycols(20)) ; (Col1 == 2 ; Col1 == 20), asserta(enemycols(1)), asserta(enemycols(10))),
     findall(Take, (move_take(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2), Take = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2)), ListOfTakes).
 %----------------------------------------------------------------
 
@@ -153,6 +162,7 @@ get_all_move_manager(Col, Move) :-
 
 %-------------GET ALL VALID MOVES WITH COL-----------------------
 get_all_valid_moves(Col, IsTake, ListOfMoves) :-        % IsTake = 1 if it's taking, 0 if just moving
+    retractall(bouldermove(_, _, _, _)),
     get_all_take_moves_with_col(Col, ListOfTakes),
     (
         length(ListOfTakes, 0), get_all_just_moves_with_col(Col, ListOfMoves), IsTake is 0
@@ -164,7 +174,6 @@ get_all_valid_moves(Col, IsTake, ListOfMoves) :-        % IsTake = 1 if it's tak
 %--------------MOVE SIMULATING AND DE-SIMULATING-----------------
 simulate_move(Move) :-
     Move = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2),
-    square(X1, Y1, Col1),
     retract(square(X1, Y1, Col1)), asserta(square(X1, Y1, 0)),
     retract(square(X2, Y2, 0)), asserta(square(X2, Y2, Col2)),
     (
@@ -182,7 +191,6 @@ simulate_move(Move) :-
 
 desimulate_move(Move) :-
     Move = move(X1, Y1, Col1, XT, YT, ColT, X2, Y2, Col2),
-    square(X2, Y2, Col2),
     retract(square(X2, Y2, Col2)), asserta(square(X2, Y2, 0)),
     retract(square(X1, Y1, 0)), asserta(square(X1, Y1, Col1)),
     (
@@ -200,7 +208,6 @@ desimulate_move(Move) :-
 %----------------------------------------------------------------
 
 %--------------------------MINIMAXER-----------------------------
-% need to make rule for 0 depth
 sim_manager(0, _, _, _, _, 0, _).
 sim_manager(Depth, Col, Multiplier, XMust, YMust, BestValue, BestMove) :-
     Depth > 0,
@@ -213,7 +220,15 @@ sim_manager(Depth, Col, Multiplier, XMust, YMust, BestValue, BestMove) :-
         % If the moves are just moves
         (
             IsTake == 0,
-            go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
+            length(ListOfMoves, LengthOfMoves),
+            (
+                LengthOfMoves > 0,
+                go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
+              ;
+                LengthOfMoves == 0,
+                BestValue is Multiplier * -100,
+                BestMove = move(1, 1, 1, 0, 0, 0, 1, 1, 1)
+            )
           ;
             IsTake == 1,
             go_deeper_take(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
@@ -223,12 +238,15 @@ sim_manager(Depth, Col, Multiplier, XMust, YMust, BestValue, BestMove) :-
         go_deeper_this_coord(XMust, YMust, NextCol, NextDepth, NextMultiplier, BestValue, BestMove)
     ).
 
-go_deeper_move([], _, _, NeMu, BeVa, 0) :-  % if these values are actually returned, then it's game over
-    NeMu == 1, BeVa is 999 ; NeMu == -1, BeVa is -999.
+go_deeper_move([], _, _, NeMu, BeVa, _) :-  % in theory these values should never be returned, has to be larger than loss value
+    BeVa is 120 * NeMu.
 go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove) :-
     ListOfMoves = [ CurMove | RestOfMoves ],
+    CurMove = move(_, _, Col1, _, _, _, _, _, Col2),
+    (Col1 == Col2, ValueAdd is 0 ; Col1 \= Col2, ValueAdd is 4),
     simulate_move(CurMove),
-    sim_manager(NextDepth, NextCol, NextMultiplier, 0, 0, ThisValue, _),
+    sim_manager(NextDepth, NextCol, NextMultiplier, 0, 0, ThisSubValue, _),
+    ThisValue is (ValueAdd * -1 * NextMultiplier) + ThisSubValue,
     desimulate_move(CurMove),
     go_deeper_move(RestOfMoves, NextCol, NextDepth, NextMultiplier, RestValue, RestMove),
     (
@@ -248,17 +266,17 @@ go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestM
     ).
 
 go_deeper_take([], _, _, NeMu, BeVa, 0) :-  % these values should never be returned, in theory
-    NeMu == 1, BeVa is 200 ; NeMu == -1, BeVa is -200.
+    NeMu == 1, BeVa is 50 ; NeMu == -1, BeVa is -50.
 go_deeper_take(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestMove) :-
     ListOfMoves = [ ThisMove | RestOfMoves ],
     ThisMove = move(_, _, _, _, _, TakeCol, X2, Y2, _),
     simulate_move(ThisMove),
     (
-        count(NextCol, 0), ThisValue is -999 * NextMultiplier         % 999 * NextMultiplier * -1, there are no opponent pieces left
+        count(NextCol, 0), ThisValue is -100 * NextMultiplier         % 100 * NextMultiplier * -1, there are no opponent pieces left
       ;
         not(count(NextCol, 0)), % simulate takes as long as there are takes
         get_all_take_moves_with_this(X2, Y2, ListOfTakes),
-        ((TakeCol == 20 ; TakeCol == 10), ValueAdd = 3; (TakeCol == 2 ; TakeCol == 1), ValueAdd = 1), RealValueAdd is ValueAdd * NextMultiplier * -1,        %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VALUES FOR PIECES
+        ((TakeCol == 20 ; TakeCol == 10), ValueAdd = 5; (TakeCol == 2 ; TakeCol == 1), ValueAdd = 1), RealValueAdd is ValueAdd * NextMultiplier * -1,        %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VALUES FOR PIECES
         (
             length(ListOfTakes, 0), sim_manager(NextDepth, NextCol, NextMultiplier, 0, 0, SubValue, _), ThisValue is SubValue + RealValueAdd
           ;
@@ -289,7 +307,6 @@ go_deeper_this_coord(X1, Y1, NextCol, NextDepth, NextMultiplier, BestValue, Best
     go_deeper_take(ListOfTakes, NextCol, NextDepth, NextMultiplier, BestValue, BestMove).
 
 
-:- module(iaib185043).
 
 iaib185043(Col, X, Y):-
     copy,
