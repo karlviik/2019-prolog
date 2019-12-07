@@ -1,7 +1,5 @@
-:- module(iaib185043).
+:- module(iaib185043, [iaib185043/3]).
 :- dynamic square/3.
-:- dynamic whites/1.
-:- dynamic blacks/1.
 :- dynamic count/2.
 :- dynamic bouldermove/4.
 %----------------------DECLARING SOME STATIC FACTS--------------
