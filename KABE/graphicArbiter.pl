@@ -10,7 +10,7 @@
 
 %mustad(iaib185787).		% Valged
 %valged(iaib185043).		% Mustad
-valged(iaib185787).		% Valged
+valged(iaib185043).		% Valged
 mustad(iaib185043).		% Mustad
 
 % Seejärel laadida mällu see programm (graphicArbiter) ja võistlevad kabeprogrammid.

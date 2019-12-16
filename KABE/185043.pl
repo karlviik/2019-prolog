@@ -252,14 +252,18 @@ go_deeper_move(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestM
         (
             RestValue < ThisValue, BestValue = RestValue, BestMove = RestMove
           ;
-            RestValue >= ThisValue, BestValue = ThisValue, BestMove = CurMove
+            RestValue == ThisValue, random(RAND), (RAND < 0.5, BestValue = ThisValue, BestMove = CurMove ; RAND >= 0.5, BestValue = RestValue, BestMove = RestMove)
+          ;
+            RestValue > ThisValue, BestValue = ThisValue, BestMove = CurMove
         )
       ;
         NextMultiplier == -1,       % means this level is my level, must get max value
         (
             RestValue > ThisValue, BestValue = RestValue, BestMove = RestMove
           ;
-            RestValue =< ThisValue, BestValue = ThisValue, BestMove = CurMove
+            RestValue == ThisValue, random(RAND), (RAND < 0.5, BestValue = ThisValue, BestMove = CurMove ; RAND >= 0.5, BestValue = RestValue, BestMove = RestMove)
+          ;
+            RestValue < ThisValue, BestValue = ThisValue, BestMove = CurMove
         )
     ).
 
@@ -289,14 +293,18 @@ go_deeper_take(ListOfMoves, NextCol, NextDepth, NextMultiplier, BestValue, BestM
         (
             RestValue < ThisValue, BestValue = RestValue, BestMove = RestMove
           ;
-            RestValue >= ThisValue, BestValue = ThisValue, BestMove = ThisMove
+            RestValue == ThisValue, random(RAND), (RAND < 0.5, BestValue = ThisValue, BestMove = ThisMove ; RAND >= 0.5, BestValue = RestValue, BestMove = RestMove)
+          ;
+            RestValue > ThisValue, BestValue = ThisValue, BestMove = ThisMove
         )
       ;
         NextMultiplier == -1,       % means this level is my level, must get max value
         (
             RestValue > ThisValue, BestValue = RestValue, BestMove = RestMove
           ;
-            RestValue =< ThisValue, BestValue = ThisValue, BestMove = ThisMove
+            RestValue == ThisValue, random(RAND), (RAND < 0.5, BestValue = ThisValue, BestMove = ThisMove ; RAND >= 0.5, BestValue = RestValue, BestMove = RestMove)
+          ;
+            RestValue < ThisValue, BestValue = ThisValue, BestMove = ThisMove
         )
     ).
 
