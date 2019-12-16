@@ -312,7 +312,7 @@ go_deeper_this_coord(X1, Y1, NextCol, NextDepth, NextMultiplier, BestValue, Best
     get_all_take_moves_with_this(X1, Y1, ListOfTakes),
     go_deeper_take(ListOfTakes, NextCol, NextDepth, NextMultiplier, BestValue, BestMove).
 
-%---------------------------------START-----------------------------
+%---------------------------------START------------------------------
 
 iaib185043(Col, X, Y):-
     copy,
